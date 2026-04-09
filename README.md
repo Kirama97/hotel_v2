@@ -1,4 +1,4 @@
-# 🏨 Hotel App v2 — Django REST + React + Cloudinary
+#  Hotel App v2 — Django REST + React + Cloudinary
 
 Backend Django REST Framework avec :
 - Authentification JWT (SimpleJWT)
@@ -77,8 +77,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': 'hotel_db',
-        'USER': 'postgres',       # votre user PostgreSQL
-        'PASSWORD': 'votre_mdp',  # votre mot de passe
+        'USER': 'postgres',      
+        'PASSWORD': 'votre_mdp', 
         'HOST': 'localhost',
         'PORT': '5432',
     }
@@ -154,15 +154,15 @@ Admin Django : **http://127.0.0.1:8000/admin/**
 
 ---
 
-## 📬 Exemples de requêtes
+##  Exemples de requêtes
 
 ### Inscription
 ```json
 POST /api/auth/register/
 {
-    "username": "john",
-    "email": "john@example.com",
-    "password": "MonMotDePasse123!"
+    "username": "kira",
+    "email": "kira@example.com",
+    "password": "Passe123!"
 }
 → 201 : { "user": {...}, "tokens": { "access": "...", "refresh": "..." } }
 ```
@@ -171,8 +171,8 @@ POST /api/auth/register/
 ```json
 POST /api/auth/login/
 {
-    "email": "john@example.com",
-    "password": "MonMotDePasse123!"
+    "email": "kira@example.com",
+    "password": "Passe123!"
 }
 → 200 : { "access": "eyJ...", "refresh": "eyJ..." }
 ```
@@ -211,7 +211,7 @@ POST /api/auth/password/confirm/
 
 ---
 
-## 🖼️ Cloudinary — upload d'image depuis React
+##  Cloudinary — upload d'image depuis React
 
 ```javascript
 import { createHotel } from './services/api';
@@ -244,7 +244,7 @@ const handleSubmit = async (e) => {
 
 ---
 
-## 🔐 Utilisation du service api.js dans React
+##  Utilisation du service api.js dans React
 
 ```javascript
 // Copier frontend/services/api.js dans votre projet React
@@ -283,7 +283,7 @@ navigate('/connexion');
 
 ---
 
-## 🚀 Règles métier
+##  Règles métier
 
 | Action | Qui peut faire ? |
 |--------|-----------------|
@@ -296,7 +296,7 @@ navigate('/connexion');
 
 ---
 
-## 🛠️ Commandes utiles
+##  Commandes utiles
 
 ```bash
 # Migrations

@@ -74,10 +74,7 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'hotel_backend.wsgi.application'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# BASE DE DONNEES — PostgreSQL
-# ─────────────────────────────────────────────────────────────────────────────
-
+# base de donne
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
@@ -91,14 +88,12 @@ DATABASES = {
         },
     }
 }
-# ─────────────────────────────────────────────────────────────────────────────
-# MODELE UTILISATEUR PERSONNALISE
-# ─────────────────────────────────────────────────────────────────────────────
+#    modele utilisateur personnaliter
+
 AUTH_USER_MODEL = 'authentication.User'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# VALIDATION MOTS DE PASSE
-# ─────────────────────────────────────────────────────────────────────────────
+
+# validation mot de passe
 AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
     {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
@@ -106,9 +101,7 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
-# JWT — SimpleJWT
-# ─────────────────────────────────────────────────────────────────────────────
+# jwt
 SIMPLE_JWT = {
     'ACCESS_TOKEN_LIFETIME': timedelta(minutes=60),
     'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
@@ -119,9 +112,7 @@ SIMPLE_JWT = {
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# DJANGO REST FRAMEWORK
-# ─────────────────────────────────────────────────────────────────────────────
+# ────────django rest framwordk
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -133,9 +124,7 @@ REST_FRAMEWORK = {
     'PAGE_SIZE': 10,
 }
 
-# ─────────────────────────────────────────────────────────────────────────────
-# CORS — autorise tous les ports localhost (Vite change de port selon dispo)
-# ─────────────────────────────────────────────────────────────────────────────
+# cors
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost:\d+$",
     r"^http://127\.0\.0\.1:\d+$",
@@ -158,11 +147,9 @@ CORS_ALLOW_METHODS = [
     'OPTIONS',
 ]
 
-# ─────────────────────────────────────────────────────────────────────────────
 # CLOUDINARY — stockage des images
-# Créer un compte sur https://cloudinary.com (gratuit)
-# Renseigner vos credentials depuis le dashboard
-# ─────────────────────────────────────────────────────────────────────────────
+
+
 import cloudinary
 
 cloudinary.config(
@@ -176,9 +163,7 @@ cloudinary.config(
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
 
-# ─────────────────────────────────────────────────────────────────────────────
-# FICHIERS STATIQUES
-# ─────────────────────────────────────────────────────────────────────────────
+# stactic
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 
