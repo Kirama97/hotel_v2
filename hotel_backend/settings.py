@@ -4,7 +4,6 @@ import os
 import dj_database_url
 import cloudinary
 
-# ✅ Charger le fichier .env automatiquement en local
 from dotenv import load_dotenv
 load_dotenv()  # ← lit le fichier .env à la racine du projet
 
@@ -68,24 +67,21 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = 'hotel_backend.wsgi.application'
 
-# ─── Base de données ──────────────────────────────────────────────────────────
-# ✅ Avant : DATABASE_URL = config('DATABASE_URL', default=None)
-# ─── Base de données ──────────────────────────────────────────────────────────
 DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 
 if DATABASE_URL:
-    # Production Render — PostgreSQL distant
+   
     DATABASES = {
         'default': dj_database_url.config(
             default=DATABASE_URL,
             conn_max_age=600,
         )
     }
-    # SSL obligatoire pour Render
+   
     DATABASES['default'].setdefault('OPTIONS', {})
     DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 else:
-    # Développement local — PostgreSQL local
+   
     DATABASES = {
         'default': {
             'ENGINE':   'django.db.backends.postgresql',
