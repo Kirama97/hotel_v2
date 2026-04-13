@@ -3,6 +3,12 @@ from datetime import timedelta
 import os
 import dj_database_url
 import cloudinary
+
+# ✅ Charger le fichier .env automatiquement en local
+from dotenv import load_dotenv
+load_dotenv()  # ← lit le fichier .env à la racine du projet
+
+
 # ✅ Supprimer : from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
