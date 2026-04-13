@@ -62,14 +62,19 @@ WSGI_APPLICATION = 'hotel_backend.wsgi.application'
 DATABASE_URL = config('DATABASE_URL', default=None)
 
 if DATABASE_URL:
-    # Production — PostgreSQL Render
-    DATABASES = {
-        'default': dj_database_url.parse(
-            DATABASE_URL,
-            conn_max_age=600,
-            ssl_require=True,
-        )
-    }
+    # Production — PostgreSQL Render ou base locale via URL
+    if DATABASE_URL.startswith('postgres'):
+        DATABASES = {
+            'default': dj_database_url.parse(
+                DATABASE_URL,
+                conn_max_age=600,
+                ssl_require=True,
+            )
+        }
+    else:
+        DATABASES = {
+            'default': dj_database_url.parse(DATABASE_URL)
+        }
 else:
     # Développement local — PostgreSQL local
     DATABASES = {
