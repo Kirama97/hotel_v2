@@ -117,6 +117,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
     def get_object(self):
         return self.request.user
 
+    def put(self, request, *args, **kwargs):
+        # Force « partial=True » même pour un PUT
+        # Cela empêche l'erreur 400 si le frontend n'envoie pas tous les champs (comme username)
+        kwargs['partial'] = True
+        return self.update(request, *args, **kwargs)
+
 
 # ── Liste des utilisateurs ────────────────────────────────────────────────────
 

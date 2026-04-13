@@ -58,7 +58,7 @@ class RegisterSerializer(serializers.ModelSerializer):
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'date_joined')
+        fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile_picture', 'date_joined')
         read_only_fields = ('id', 'email', 'date_joined')
 
 
@@ -73,7 +73,7 @@ class UserListSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = User
-        fields = ('id', 'username', 'email', 'date_joined', 'total_hotels')
+        fields = ('id', 'username', 'email', 'profile_picture', 'date_joined', 'total_hotels')
 
 
 # ── Reset Password ────────────────────────────────────────────────────────────

@@ -148,6 +148,17 @@ cloudinary.config(
 )
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
 MEDIA_URL = '/media/'
+MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
+
+# Configuration de stockage pour Django 4.2+ (remplace DEFAULT_FILE_STORAGE)
+STORAGES = {
+    "default": {
+        "BACKEND": "cloudinary_storage.storage.MediaCloudinaryStorage",
+    },
+    "staticfiles": {
+        "BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage",
+    },
+}
 
 # ─── Fichiers statiques (WhiteNoise) ─────────────────────────────────────────
 STATIC_URL  = '/static/'
