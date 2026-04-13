@@ -12,10 +12,8 @@ import os
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-# ─────────────────────────────────────────────────────────────────────────────
-# SECURITE
-# ─────────────────────────────────────────────────────────────────────────────
-SECRET_KEY = 'django-insecure-remplacez-cette-cle-en-production-xxxxxxxxxxx'
+ 
+SECRET_KEY = 'djfkljsdfkljsdfklsdfjkl123!@#'
 DEBUG = True
 ALLOWED_HOSTS = ['localhost', '127.0.0.1']
 
@@ -44,7 +42,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
-    'corsheaders.middleware.CorsMiddleware',   # EN PREMIER obligatoire
+    'corsheaders.middleware.CorsMiddleware', 
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
