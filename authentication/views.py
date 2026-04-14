@@ -29,6 +29,7 @@ from .serializers import (
     PasswordResetRequestSerializer,
     PasswordResetConfirmSerializer,
     ChangePasswordSerializer,
+    AccountActivateSerializer,
 )
 
 User = get_user_model()
@@ -72,9 +73,25 @@ class RegisterView(generics.CreateAPIView):
         user = serializer.save()
         return Response({
             'user': UserProfileSerializer(user).data,
-            'tokens': get_tokens_for_user(user),
-            'message': 'Compte créé avec succès.',
+            'message': 'Compte créé avec succès. Veuillez vérifier votre boîte mail pour l\'activer.',
         }, status=status.HTTP_201_CREATED)
+
+class AccountActivateView(APIView):
+    """
+    POST /api/auth/activate/
+    Corps : { "token": "uuid-token" }
+    """
+    permission_classes = [permissions.AllowAny]
+
+    def post(self, request):
+        serializer = AccountActivateSerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        user = serializer.context['user']
+        user.is_active = True
+        user.activation_token = None
+        user.save()
+        return Response({'message': 'Compte activé avec succès. Vous pouvez maintenant vous connecter.'})
+
 
 
 # ── Déconnexion ───────────────────────────────────────────────────────────────
@@ -171,21 +188,31 @@ class PasswordResetRequestView(APIView):
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
+        from django.conf import settings
+        from django.core.mail import send_mail
+        
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         try:
             user = User.objects.get(email=email)
             token = user.generate_reset_token()
+            
+            reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
+            send_mail(
+                subject='Réinitialisation de votre mot de passe',
+                message=f'Bonjour {user.username},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans {getattr(settings, "PASSWORD_RESET_TOKEN_EXPIRY_HOURS", 24)} heures.',
+                from_email=settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+            
             return Response({
-                'message': 'Token de réinitialisation généré.',
-                'token': str(token),
-                'expires_in': '24 heures',
+                'message': 'Si cet email est associé à un compte, un email de réinitialisation a été envoyé.',
             })
         except User.DoesNotExist:
-            # Même réponse pour ne pas révéler si l'email existe
             return Response({
-                'message': "Si cet email est associé à un compte, un token a été généré.",
+                'message': "Si cet email est associé à un compte, un email de réinitialisation a été envoyé.",
             })
 
 

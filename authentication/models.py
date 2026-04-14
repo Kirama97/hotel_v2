@@ -21,6 +21,9 @@ class User(AbstractUser):
     email = models.EmailField(unique=True, verbose_name='Adresse email')
     profile_picture = models.ImageField(upload_to='profiles/', null=True, blank=True, verbose_name='Photo de profil')
 
+    # Champs pour l'activation du compte
+    activation_token = models.UUIDField(null=True, blank=True, default=None)
+
     # Champs pour le reset password par token (sans envoi email)
     reset_token = models.UUIDField(null=True, blank=True, default=None)
     reset_token_expiry = models.DateTimeField(null=True, blank=True, default=None)

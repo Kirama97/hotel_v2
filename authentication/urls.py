@@ -8,11 +8,13 @@ from .views import (
     PasswordResetRequestView,
     PasswordResetConfirmView,
     ChangePasswordView,
+    AccountActivateView,
 )
 
 urlpatterns = [
     # Inscription / Connexion
     path('register/', RegisterView.as_view(), name='auth-register'),
+    path('activate/', AccountActivateView.as_view(), name='auth-activate'),
     path('login/', TokenObtainPairView.as_view(), name='auth-login'),
     path('token/refresh/', TokenRefreshView.as_view(), name='token-refresh'),
     path('logout/', LogoutView.as_view(), name='auth-logout'),

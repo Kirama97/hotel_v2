@@ -46,11 +46,46 @@ class RegisterSerializer(serializers.ModelSerializer):
         return value
 
     def create(self, validated_data):
-        return User.objects.create_user(
+        from django.conf import settings
+        from django.core.mail import send_mail
+        import uuid
+
+        # Création de l'utilisateur inactif
+        user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
             password=validated_data['password'],
         )
+        user.is_active = False
+        user.activation_token = uuid.uuid4()
+        user.save()
+
+        # Envoi de l'email d'activation
+        activation_link = f"{settings.FRONTEND_URL}/activate/{user.activation_token}"
+        send_mail(
+            subject='Activation de votre compte',
+            message=f'Bonjour {user.username},\n\nMerci de vous être inscrit. Veuillez activer votre compte en cliquant sur le lien suivant :\n{activation_link}',
+            from_email=settings.DEFAULT_FROM_EMAIL,
+            recipient_list=[user.email],
+            fail_silently=True,
+        )
+
+        return user
+
+class AccountActivateSerializer(serializers.Serializer):
+    token = serializers.UUIDField(required=True)
+
+    def validate_token(self, value):
+        try:
+            user = User.objects.get(activation_token=value)
+        except User.DoesNotExist:
+            raise serializers.ValidationError("Token invalide ou introuvable.")
+        
+        if user.is_active:
+            raise serializers.ValidationError("Compte déjà activé.")
+            
+        self.context['user'] = user
+        return value
 
 
 # ── Profil ────────────────────────────────────────────────────────────────────
