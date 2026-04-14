@@ -204,7 +204,7 @@ class PasswordResetRequestView(APIView):
                 message=f'Bonjour {user.username},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans {getattr(settings, "PASSWORD_RESET_TOKEN_EXPIRY_HOURS", 24)} heures.',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
-                fail_silently=True,
+                fail_silently=False,
             )
             
             return Response({

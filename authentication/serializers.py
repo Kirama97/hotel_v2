@@ -67,7 +67,7 @@ class RegisterSerializer(serializers.ModelSerializer):
             message=f'Bonjour {user.username},\n\nMerci de vous être inscrit. Veuillez activer votre compte en cliquant sur le lien suivant :\n{activation_link}',
             from_email=settings.DEFAULT_FROM_EMAIL,
             recipient_list=[user.email],
-            fail_silently=True,
+            fail_silently=False,
         )
 
         return user
