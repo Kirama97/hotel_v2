@@ -2,14 +2,25 @@ from pathlib import Path
 from datetime import timedelta
 import os
 import dj_database_url
-from decouple import config
+import cloudinary
+
+from dotenv import load_dotenv
+load_dotenv()  # ← lit le fichier .env à la racine du projet
+
+
+# ✅ Supprimer : from decouple import config
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 # ─── Sécurité ─────────────────────────────────────────────────────────────────
-SECRET_KEY = config('SECRET_KEY')           # ← depuis variable d'env Render
-DEBUG      = config('DEBUG', default=False, cast=bool)
-ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+# ✅ Avant : SECRET_KEY = config('SECRET_KEY')
+SECRET_KEY = os.environ.get('SECRET_KEY', 'dev-key-insecure-changer-en-prod')
+
+# ✅ Avant : DEBUG = config('DEBUG', default=False, cast=bool)
+DEBUG = os.environ.get('DEBUG', 'False') == 'True'
+
+# ✅ Avant : ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='*').split(',')
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', 'localhost,127.0.0.1').split(',')
 
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -31,7 +42,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
-    'whitenoise.middleware.WhiteNoiseMiddleware',  # ← WhiteNoise pour les statics
+    'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
@@ -56,35 +67,29 @@ TEMPLATES = [{
 
 WSGI_APPLICATION = 'hotel_backend.wsgi.application'
 
-# ─── Base de données ──────────────────────────────────────────────────────────
-# En local : SQLite ou PostgreSQL
-# En production (Render) : DATABASE_URL fournie automatiquement par Render
-DATABASE_URL = config('DATABASE_URL', default=None)
+DATABASE_URL = os.environ.get('DATABASE_URL', '').strip()
 
 if DATABASE_URL:
-    # Production — PostgreSQL Render ou base locale via URL
-    if DATABASE_URL.startswith('postgres'):
-        DATABASES = {
-            'default': dj_database_url.parse(
-                DATABASE_URL,
-                conn_max_age=600,
-                ssl_require=True,
-            )
-        }
-    else:
-        DATABASES = {
-            'default': dj_database_url.parse(DATABASE_URL)
-        }
+   
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=DATABASE_URL,
+            conn_max_age=600,
+        )
+    }
+   
+    DATABASES['default'].setdefault('OPTIONS', {})
+    DATABASES['default']['OPTIONS']['sslmode'] = 'require'
 else:
-    # Développement local — PostgreSQL local
+   
     DATABASES = {
         'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': config('DB_NAME', default='hotel_db'),
-            'USER': config('DB_USER', default='postgres'),
-            'PASSWORD': config('DB_PASSWORD', default=''),
-            'HOST': config('DB_HOST', default='localhost'),
-            'PORT': config('DB_PORT', default='5432'),
+            'ENGINE':   'django.db.backends.postgresql',
+            'NAME':     os.environ.get('DB_NAME', 'hotel_db'),
+            'USER':     os.environ.get('DB_USER', 'postgres'),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST':     os.environ.get('DB_HOST', 'localhost'),
+            'PORT':     os.environ.get('DB_PORT', '5432'),
         }
     }
 
@@ -97,18 +102,16 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
 
-# ─── JWT ──────────────────────────────────────────────────────────────────────
 SIMPLE_JWT = {
-    'ACCESS_TOKEN_LIFETIME':  timedelta(minutes=60),
-    'REFRESH_TOKEN_LIFETIME': timedelta(days=7),
-    'ROTATE_REFRESH_TOKENS':  True,
+    'ACCESS_TOKEN_LIFETIME':    timedelta(minutes=60),
+    'REFRESH_TOKEN_LIFETIME':   timedelta(days=7),
+    'ROTATE_REFRESH_TOKENS':    True,
     'BLACKLIST_AFTER_ROTATION': True,
-    'UPDATE_LAST_LOGIN': True,
-    'ALGORITHM': 'HS256',
-    'AUTH_HEADER_TYPES': ('Bearer',),
+    'UPDATE_LAST_LOGIN':        True,
+    'ALGORITHM':                'HS256',
+    'AUTH_HEADER_TYPES':        ('Bearer',),
 }
 
-# ─── DRF ──────────────────────────────────────────────────────────────────────
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
@@ -121,12 +124,10 @@ REST_FRAMEWORK = {
 }
 
 # ─── CORS ─────────────────────────────────────────────────────────────────────
-CORS_ALLOWED_ORIGINS = config(
-    'CORS_ALLOWED_ORIGINS',
-    default='http://localhost:5173,http://localhost:3000'
-).split(',')
+# ✅ Avant : CORS_ALLOWED_ORIGINS = config('CORS_ALLOWED_ORIGINS', default='...').split(',')
+_cors = os.environ.get('CORS_ALLOWED_ORIGINS', 'http://localhost:5173,http://localhost:3000')
+CORS_ALLOWED_ORIGINS = [o.strip() for o in _cors.split(',') if o.strip()]
 
-# Autorise aussi tous les ports localhost en dev
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^http://localhost:\d+$",
     r"^http://127\.0\.0\.1:\d+$",
@@ -139,11 +140,11 @@ CORS_ALLOW_HEADERS = [
 CORS_ALLOW_METHODS = ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS']
 
 # ─── Cloudinary ───────────────────────────────────────────────────────────────
-import cloudinary
+# ✅ Avant : config('CLOUDINARY_CLOUD_NAME') etc.
 cloudinary.config(
-    cloud_name = config('CLOUDINARY_CLOUD_NAME'),
-    api_key    = config('CLOUDINARY_API_KEY'),
-    api_secret = config('CLOUDINARY_API_SECRET'),
+    cloud_name = os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+    api_key    = os.environ.get('CLOUDINARY_API_KEY', ''),
+    api_secret = os.environ.get('CLOUDINARY_API_SECRET', ''),
     secure     = True,
 )
 DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
@@ -160,12 +161,10 @@ STORAGES = {
     },
 }
 
-# ─── Fichiers statiques (WhiteNoise) ─────────────────────────────────────────
 STATIC_URL  = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
-# ─── Internationalisation ─────────────────────────────────────────────────────
 LANGUAGE_CODE = 'fr-fr'
 TIME_ZONE     = 'Africa/Dakar'
 USE_I18N = True

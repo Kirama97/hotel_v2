@@ -35,28 +35,16 @@ class HotelViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        hotel = self.get_object()
-        if hotel.created_by != request.user:
-            return Response(
-                {'error': "Vous ne pouvez modifier que vos propres hôtels."},
-                status=status.HTTP_403_FORBIDDEN
-            )
+        # On force partial=True pour tolérer les formulaires FormData incomplets avec PUT
+        kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
 
     def destroy(self, request, *args, **kwargs):
-        hotel = self.get_object()
-        if hotel.created_by != request.user:
-            return Response(
-                {'error': "Vous ne pouvez supprimer que vos propres hôtels."},
-                status=status.HTTP_403_FORBIDDEN
-            )
         return super().destroy(request, *args, **kwargs)
 
     @action(detail=True, methods=['patch'], url_path='toggle-disponibilite')
     def toggle_disponibilite(self, request, pk=None):
         hotel = self.get_object()
-        if hotel.created_by != request.user:
-            return Response({'error': "Non autorisé."}, status=status.HTTP_403_FORBIDDEN)
         hotel.est_disponible = not hotel.est_disponible
         hotel.save(update_fields=['est_disponible'])
         return Response({'id': hotel.id, 'est_disponible': hotel.est_disponible})
