@@ -21,6 +21,7 @@ from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework_simplejwt.tokens import RefreshToken
 from rest_framework_simplejwt.exceptions import TokenError
+from rest_framework_simplejwt.views import TokenObtainPairView
 
 from .serializers import (
     RegisterSerializer,
@@ -30,6 +31,7 @@ from .serializers import (
     PasswordResetConfirmSerializer,
     ChangePasswordSerializer,
     AccountActivateSerializer,
+    CustomTokenObtainPairSerializer,
 )
 
 User = get_user_model()
@@ -42,6 +44,13 @@ def get_tokens_for_user(user):
         'refresh': str(refresh),
         'access': str(refresh.access_token),
     }
+
+class CustomTokenObtainPairView(TokenObtainPairView):
+    """
+    POST /api/auth/login/
+    Customisé pour intercepter spécifiquement les comptes inactifs
+    """
+    serializer_class = CustomTokenObtainPairSerializer
 
 
 # ── Inscription ───────────────────────────────────────────────────────────────
