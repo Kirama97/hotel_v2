@@ -171,7 +171,7 @@ USE_I18N = True
 USE_TZ   = True
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
-PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 24
+PASSWORD_RESET_TOKEN_EXPIRY_HOURS = 1
 
 # ─── Configuration Email ──────────────────────────────────────────────────────
 # URL frontend pour les liens d'activation et reset mot de passe

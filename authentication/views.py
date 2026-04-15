@@ -16,6 +16,8 @@ PUT    /api/auth/password/change/   → Changer le mot de passe (connecté)
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -77,6 +79,11 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        # --- Nettoyage paresseux (Lazy Cleanup) ---
+        # Supprime les comptes non activés après 15 minutes à chaque nouvelle inscription
+        time_threshold = timezone.now() - timedelta(minutes=15)
+        User.objects.filter(is_active=False, date_joined__lt=time_threshold).delete()
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -210,7 +217,7 @@ class PasswordResetRequestView(APIView):
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
             send_mail(
                 subject='Réinitialisation de votre mot de passe',
-                message=f'Bonjour {user.username},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans {getattr(settings, "PASSWORD_RESET_TOKEN_EXPIRY_HOURS", 24)} heures.',
+                message=f'Bonjour {user.username},\n\nVous avez demandé à réinitialiser votre mot de passe. Cliquez sur le lien suivant :\n{reset_link}\n\nCe lien expire dans {getattr(settings, "PASSWORD_RESET_TOKEN_EXPIRY_HOURS", 1)} heure(s).',
                 from_email=settings.DEFAULT_FROM_EMAIL,
                 recipient_list=[user.email],
                 fail_silently=False,
