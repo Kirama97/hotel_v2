@@ -16,6 +16,8 @@ PUT    /api/auth/password/change/   → Changer le mot de passe (connecté)
 
 from django.contrib.auth import get_user_model
 from django.db.models import Count
+from django.utils import timezone
+from datetime import timedelta
 from rest_framework import generics, status, permissions
 from rest_framework.response import Response
 from rest_framework.views import APIView
@@ -77,6 +79,11 @@ class RegisterView(generics.CreateAPIView):
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
+        # --- Nettoyage paresseux (Lazy Cleanup) ---
+        # Supprime les comptes non activés après 15 minutes à chaque nouvelle inscription
+        time_threshold = timezone.now() - timedelta(minutes=15)
+        User.objects.filter(is_active=False, date_joined__lt=time_threshold).delete()
+        
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
