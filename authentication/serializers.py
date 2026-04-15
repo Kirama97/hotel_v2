@@ -12,9 +12,18 @@ Sérialiseurs pour :
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
+from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
 
+
+class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
+    def validate(self, attrs):
+        user = User.objects.filter(email=attrs.get("email")).first()
+        if user and user.check_password(attrs.get("password")):
+            if not user.is_active:
+                raise serializers.ValidationError({"detail": "Votre compte n'est pas activé. Veuillez vérifier vos emails pour l'activer."})
+        return super().validate(attrs)
 
 # ── Inscription ───────────────────────────────────────────────────────────────
 
