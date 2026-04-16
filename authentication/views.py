@@ -1,19 +1,3 @@
-"""
-authentication/views.py
-
-Endpoints :
-POST   /api/auth/register/          → Inscription (username + email + password)
-POST   /api/auth/login/             → Connexion JWT
-POST   /api/auth/token/refresh/     → Rafraîchir le access token
-POST   /api/auth/logout/            → Déconnexion (blacklist refresh token)
-GET    /api/auth/me/                → Profil utilisateur connecté
-PUT    /api/auth/me/                → Modifier le profil
-GET    /api/auth/users/             → Liste tous les utilisateurs inscrits
-POST   /api/auth/password/reset/    → Demander un token de reset
-POST   /api/auth/password/confirm/  → Confirmer le reset
-PUT    /api/auth/password/change/   → Changer le mot de passe (connecté)
-"""
-
 from django.contrib.auth import get_user_model
 from django.db.models import Count
 from django.utils import timezone
@@ -38,9 +22,8 @@ from .serializers import (
 
 User = get_user_model()
 
-
 def get_tokens_for_user(user):
-    """Génère les tokens JWT access + refresh pour un utilisateur."""
+
     refresh = RefreshToken.for_user(user)
     return {
         'refresh': str(refresh),
@@ -48,42 +31,19 @@ def get_tokens_for_user(user):
     }
 
 class CustomTokenObtainPairView(TokenObtainPairView):
-    """
-    POST /api/auth/login/
-    Customisé pour intercepter spécifiquement les comptes inactifs
-    """
+
     serializer_class = CustomTokenObtainPairSerializer
 
-
-# ── Inscription ───────────────────────────────────────────────────────────────
-
 class RegisterView(generics.CreateAPIView):
-    """
-    POST /api/auth/register/
 
-    Corps :
-    {
-        "username": "john",
-        "email": "john@example.com",
-        "password": "MonMotDePasse123!"
-    }
-
-    Réponse 201 :
-    {
-        "user": { "id": 1, "username": "john", "email": "john@example.com", ... },
-        "tokens": { "access": "...", "refresh": "..." },
-        "message": "Compte créé avec succès."
-    }
-    """
     serializer_class = RegisterSerializer
     permission_classes = [permissions.AllowAny]
 
     def create(self, request, *args, **kwargs):
-        # --- Nettoyage paresseux (Lazy Cleanup) ---
-        # Supprime les comptes non activés après 15 minutes à chaque nouvelle inscription
+
         time_threshold = timezone.now() - timedelta(minutes=15)
         User.objects.filter(is_active=False, date_joined__lt=time_threshold).delete()
-        
+
         serializer = self.get_serializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
@@ -93,10 +53,7 @@ class RegisterView(generics.CreateAPIView):
         }, status=status.HTTP_201_CREATED)
 
 class AccountActivateView(APIView):
-    """
-    POST /api/auth/activate/
-    Corps : { "token": "uuid-token" }
-    """
+
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -108,15 +65,8 @@ class AccountActivateView(APIView):
         user.save()
         return Response({'message': 'Compte activé avec succès. Vous pouvez maintenant vous connecter.'})
 
-
-
-# ── Déconnexion ───────────────────────────────────────────────────────────────
-
 class LogoutView(APIView):
-    """
-    POST /api/auth/logout/
-    Corps : { "refresh": "<refresh_token>" }
-    """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request):
@@ -136,14 +86,8 @@ class LogoutView(APIView):
             status=status.HTTP_205_RESET_CONTENT
         )
 
-
-# ── Profil ────────────────────────────────────────────────────────────────────
-
 class UserProfileView(generics.RetrieveUpdateAPIView):
-    """
-    GET /api/auth/me/  → récupérer le profil
-    PUT /api/auth/me/  → modifier le profil
-    """
+
     serializer_class = UserProfileSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -151,33 +95,12 @@ class UserProfileView(generics.RetrieveUpdateAPIView):
         return self.request.user
 
     def put(self, request, *args, **kwargs):
-        # Force « partial=True » même pour un PUT
-        # Cela empêche l'erreur 400 si le frontend n'envoie pas tous les champs (comme username)
+
         kwargs['partial'] = True
         return self.update(request, *args, **kwargs)
 
-
-# ── Liste des utilisateurs ────────────────────────────────────────────────────
-
 class UserListView(generics.ListAPIView):
-    """
-    GET /api/auth/users/
 
-    Retourne tous les utilisateurs inscrits avec leur nombre d'hôtels créés.
-    Accessible à tout utilisateur connecté.
-
-    Réponse :
-    [
-        {
-            "id": 1,
-            "username": "john",
-            "email": "john@example.com",
-            "date_joined": "2026-03-24T...",
-            "total_hotels": 3
-        },
-        ...
-    ]
-    """
     serializer_class = UserListSerializer
     permission_classes = [permissions.IsAuthenticated]
 
@@ -186,34 +109,21 @@ class UserListView(generics.ListAPIView):
             total_hotels=Count('hotels')
         ).order_by('-date_joined')
 
-
-# ── Reset Password (sans email, par token dans la réponse) ────────────────────
-
 class PasswordResetRequestView(APIView):
-    """
-    POST /api/auth/password/reset/
-    Corps : { "email": "john@example.com" }
 
-    Réponse si l'email existe :
-    {
-        "message": "Token généré.",
-        "token": "550e8400-e29b-41d4-a716-446655440000",
-        "expires_in": "24 heures"
-    }
-    """
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
         from django.conf import settings
         from django.core.mail import send_mail
-        
+
         serializer = PasswordResetRequestSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
         email = serializer.validated_data['email']
         try:
             user = User.objects.get(email=email)
             token = user.generate_reset_token()
-            
+
             reset_link = f"{settings.FRONTEND_URL}/reset-password/{token}"
             send_mail(
                 subject='Réinitialisation de votre mot de passe',
@@ -222,7 +132,7 @@ class PasswordResetRequestView(APIView):
                 recipient_list=[user.email],
                 fail_silently=False,
             )
-            
+
             return Response({
                 'message': 'Si cet email est associé à un compte, un email de réinitialisation a été envoyé.',
             })
@@ -231,16 +141,8 @@ class PasswordResetRequestView(APIView):
                 'message': "Si cet email est associé à un compte, un email de réinitialisation a été envoyé.",
             })
 
-
 class PasswordResetConfirmView(APIView):
-    """
-    POST /api/auth/password/confirm/
-    Corps :
-    {
-        "token": "550e8400-...",
-        "new_password": "NouveauMdp123!"
-    }
-    """
+
     permission_classes = [permissions.AllowAny]
 
     def post(self, request):
@@ -254,19 +156,8 @@ class PasswordResetConfirmView(APIView):
         user.clear_reset_token()
         return Response({'message': 'Mot de passe réinitialisé avec succès.'})
 
-
-# ── Changement de mot de passe (utilisateur connecté) ────────────────────────
-
 class ChangePasswordView(APIView):
-    """
-    PUT /api/auth/password/change/
-    Headers : Authorization: Bearer <access_token>
-    Corps :
-    {
-        "old_password": "AncienMdp",
-        "new_password": "NouveauMdp123!"
-    }
-    """
+
     permission_classes = [permissions.IsAuthenticated]
 
     def put(self, request):

@@ -2,12 +2,9 @@ from rest_framework import serializers
 from cloudinary.utils import cloudinary_url
 from .models import Hotel
 
-
 class HotelSerializer(serializers.ModelSerializer):
     created_by = serializers.StringRelatedField(read_only=True)
     image_url  = serializers.SerializerMethodField()
-
- 
 
     class Meta:
         model  = Hotel
@@ -30,7 +27,6 @@ class HotelSerializer(serializers.ModelSerializer):
             )
             return url
         return None
-
 
 class HotelListSerializer(serializers.ModelSerializer):
     image_url  = serializers.SerializerMethodField()

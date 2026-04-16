@@ -7,11 +7,9 @@ from django.db.models import Avg, Count, Min, Max, Sum, Q
 from .models import Hotel
 from .serializers import HotelSerializer, HotelListSerializer
 
-
 class HotelViewSet(viewsets.ModelViewSet):
     permission_classes = [permissions.IsAuthenticated]
 
-   
     parser_classes = [MultiPartParser, FormParser, JSONParser]
 
     filter_backends = [filters.SearchFilter, filters.OrderingFilter]
@@ -35,7 +33,7 @@ class HotelViewSet(viewsets.ModelViewSet):
         serializer.save(created_by=self.request.user)
 
     def update(self, request, *args, **kwargs):
-        # On force partial=True pour tolérer les formulaires FormData incomplets avec PUT
+
         kwargs['partial'] = True
         return super().update(request, *args, **kwargs)
 

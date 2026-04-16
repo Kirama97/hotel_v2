@@ -5,7 +5,6 @@ from cloudinary.models import CloudinaryField
 
 User = get_user_model()
 
-
 class Hotel(models.Model):
 
     DEVISE_CHOICES = [
@@ -31,7 +30,6 @@ class Hotel(models.Model):
         verbose_name='Devise'
     )
 
-   
     image = CloudinaryField(
         'Photo',          
         folder='hotels/',

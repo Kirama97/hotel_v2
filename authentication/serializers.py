@@ -1,21 +1,9 @@
-"""
-authentication/serializers.py
-
-Sérialiseurs pour :
-- Inscription (username + email + password UNIQUEMENT, pas de confirm)
-- Profil utilisateur
-- Liste des utilisateurs inscrits
-- Reset password par token
-- Changement de mot de passe
-"""
-
 from django.contrib.auth import get_user_model
 from django.contrib.auth.password_validation import validate_password
 from rest_framework import serializers
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 
 User = get_user_model()
-
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
     def validate(self, attrs):
@@ -25,13 +13,8 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
                 raise serializers.ValidationError({"detail": "Votre compte n'est pas activé. Veuillez vérifier vos emails pour l'activer."})
         return super().validate(attrs)
 
-# ── Inscription ───────────────────────────────────────────────────────────────
-
 class RegisterSerializer(serializers.ModelSerializer):
-    """
-    Inscription simplifiée : username + email + password uniquement.
-    Pas de champ password2 / confirm password.
-    """
+
     password = serializers.CharField(
         write_only=True,
         required=True,
@@ -71,7 +54,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         from django.core.mail import send_mail
         import uuid
 
-        # Création de l'utilisateur inactif
         user = User.objects.create_user(
             username=validated_data['username'],
             email=validated_data['email'],
@@ -81,7 +63,6 @@ class RegisterSerializer(serializers.ModelSerializer):
         user.activation_token = uuid.uuid4()
         user.save()
 
-        # Envoi de l'email d'activation
         activation_link = f"{settings.FRONTEND_URL}/activate/{user.activation_token}"
         send_mail(
             subject='Activation de votre compte',
@@ -101,15 +82,12 @@ class AccountActivateSerializer(serializers.Serializer):
             user = User.objects.get(activation_token=value)
         except User.DoesNotExist:
             raise serializers.ValidationError("Token invalide ou introuvable.")
-        
+
         if user.is_active:
             raise serializers.ValidationError("Compte déjà activé.")
-            
+
         self.context['user'] = user
         return value
-
-
-# ── Profil ────────────────────────────────────────────────────────────────────
 
 class UserProfileSerializer(serializers.ModelSerializer):
     class Meta:
@@ -117,26 +95,16 @@ class UserProfileSerializer(serializers.ModelSerializer):
         fields = ('id', 'username', 'email', 'first_name', 'last_name', 'profile_picture', 'date_joined')
         read_only_fields = ('id', 'email', 'date_joined')
 
-
-# ── Liste utilisateurs ────────────────────────────────────────────────────────
-
 class UserListSerializer(serializers.ModelSerializer):
-    """
-    Liste de tous les utilisateurs inscrits.
-    Inclut le nombre d'hôtels créés par chaque utilisateur.
-    """
+
     total_hotels = serializers.IntegerField(read_only=True)
 
     class Meta:
         model = User
         fields = ('id', 'username', 'email', 'profile_picture', 'date_joined', 'total_hotels')
 
-
-# ── Reset Password ────────────────────────────────────────────────────────────
-
 class PasswordResetRequestSerializer(serializers.Serializer):
     email = serializers.EmailField(required=True)
-
 
 class PasswordResetConfirmSerializer(serializers.Serializer):
     token = serializers.UUIDField(required=True)
@@ -156,9 +124,6 @@ class PasswordResetConfirmSerializer(serializers.Serializer):
             raise serializers.ValidationError("Ce token a expiré. Refaites une demande.")
         self.context['user'] = user
         return value
-
-
-# ── Changement de mot de passe (utilisateur connecté) ────────────────────────
 
 class ChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(
